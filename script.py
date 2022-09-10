@@ -1,6 +1,11 @@
 import csv
 
 
+#   This function takes in a carer dictionary and returns the calculated score
+#   with the following formula:
+#                       (previous_clients + years experience + type)
+#   score = reviews  *  --------------------------------------------
+#                       (1 - image problems + days since logged in))
 def score_carer(carer):
     normalized_img_problems = int(carer['img_problems']) / 8
     normalized_num_previous = int(carer['num_previous_clients']) / 100
@@ -8,9 +13,11 @@ def score_carer(carer):
     normalized_avg_review = float(carer['avg_review']) / 5
     normalized_type = carer['type'] / 2
 
+    #   this normalises the days since logged in to 0 if less than 7,
+    #   and if greater than 7, up to 100
     normalized_days_since_logged_in = 0 if int(carer['days_since_login']) \
-        < 7 else ( int(carer['days_since_login']) if int(carer['days_since_login']) \
-        < 100 else 100) / 100
+        < 7 else (int(carer['days_since_login']) if int(carer['days_since_login'])
+                  < 100 else 100) / 100
 
     weighted_type = normalized_type / 5
     weighted_img_problems = normalized_img_problems * 0.6
@@ -28,6 +35,7 @@ def score_carer(carer):
     return round(score, 4)
 
 
+#   This function returns true if the carer is deemed valid
 def validate_carer(carer):
     if carer['num_reviews'] > carer['num_previous_clients']:
         return False
@@ -42,6 +50,8 @@ if __name__ == "__main__":
     with open('data.csv', newline='') as csvfile:
         reader = csv.DictReader(csvfile)
         for carer in reader:
+
+            #   maps the carer's "type" to numeral value
             match carer['type']:
                 case 'basic':
                     carer['type'] = 0
@@ -54,8 +64,8 @@ if __name__ == "__main__":
 
             if not validate_carer(carer):
                 continue
-            score = score_carer(carer)
-            carer['score'] = score
+
+            carer['score'] = score_carer(carer)
             carers.append(carer)
 
     sorted_list = sorted(
@@ -66,4 +76,3 @@ if __name__ == "__main__":
         writer.writeheader()
         for carer in sorted_list:
             writer.writerow(carer)
-
